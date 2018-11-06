@@ -8,10 +8,16 @@
   "main": "handler.js",
   "scripts": {
     "test": "jest",
+    "test:watch": "jest --watch",
+    "build": "serverless webpack",
     "logs:aws": "serverless logs --function hello",
     "invoke:aws": "serverless invoke --function hello",
     "invoke:local": "serverless invoke local --function hello",
     "deploy:local": "serverless offline start",
+    "deploy:production": "export NODE_ENV=production && npm run deploy:aws",
+    "deploy:stage": "export NODE_ENV=development && npm run deploy:aws",
+    "lint": "eslint",
+    "precommit": "lint-staged",
     "deploy:aws": "serverless deploy",
     "deploy": "npm run test && npm run deploy:aws"
   },
@@ -55,5 +61,13 @@
   "dependencies": {
     "@babel/runtime": "^7.0.0",
     "source-map-support": "^0.5.9"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "prettier --write",
+      "git add",
+      "jest --bail --findRelatedTests"
+    ]
   }
 }
