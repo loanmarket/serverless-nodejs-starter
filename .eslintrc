@@ -1,0 +1,46 @@
+---
+# Based on the AirBnb JavaScript styleguides with our own twist
+parser: babel-eslint
+env:
+  es6: true
+  node: true
+  jest: true
+plugins:
+  - prettier
+  // - promise
+  // - import
+// extends:
+  // - eslint:recommended
+  // - plugin:promise/recommended
+  // - plugin:prettier/recommended
+  // - plugin:import/errors
+  // - plugin:import/warnings
+parserOptions:
+  sourceType: module
+  ecmaVersion: 2018
+// rules:
+  // prettier/prettier:
+  //   - error
+  //   - singleQuote: true
+  //     trailingComma: all
+  //     bracketSpacing: true
+  //     arrowParens: avoid
+  // no-process-env:
+  //   - off
+  // no-console:
+  //   - off
+  // comma-dangle:
+  //   - error
+  //   - arrays: always-multiline
+  //     exports: always-multiline
+  //     functions: always-multiline
+  //     imports: always-multiline
+  //     objects: always-multiline
+  // function-paren-newline:
+  //   - off
+  // promise/avoid-new:
+  //   - off
+settings:
+  node:
+    allowModules:
+      - aws-sdk
