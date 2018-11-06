@@ -17,7 +17,6 @@
     "deploy:production": "export NODE_ENV=production && npm run deploy:aws",
     "deploy:stage": "export NODE_ENV=development && npm run deploy:aws",
     "lint": "eslint",
-    "precommit": "lint-staged",
     "deploy:aws": "serverless deploy",
     "deploy": "npm run test && npm run deploy:aws"
   },
@@ -69,5 +68,10 @@
       "git add",
       "jest --bail --findRelatedTests"
     ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   }
 }
