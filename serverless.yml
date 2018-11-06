@@ -8,27 +8,108 @@ plugins:
 
 # serverless-webpack configuration
 # Enable auto-packing of external modules
-custom:
-  webpack:
-    webpackConfig: ./webpack.config.js
-    includeModules: true
+custom: ${file(custom.yml):${self:provider.stage}}
 
 provider:
   name: aws
   runtime: nodejs8.10
-  stage: dev
-  region: us-east-1
+  stage: ${opt:stage, 'SIT'}
+  region: ap-southeast-2
+  role: DefaultRole
+  deploymentBucket:
+    name: ${self:custom.deploymentBucket}
+  stackTags:
+    Application: ${self:service}
+    Owner: nchow
+    Team: IT Operations
+    Framework: Serverless
+    Name: ${self:service}-${self:provider.stage}
+    Environment: ${self:provider.stage}
+    Cost Centre: Loan Market AU
+    Business Unit: Loan Market
+
   # To load environment variables externally
   # rename env.example to env.yml and uncomment
   # the following line. Also, make sure to not
-  # commit your env.yml.
-  #
-  #environment: ${file(env.yml):${self:provider.stage}}
+  # commit your env.yml
+  # environment: ${file(env.yml):${self:provider.stage}}
 
 functions:
   hello:
     handler: handler.hello
+    role: FunctionRole
     events:
       - http:
           path: hello
           method: get
+
+resources:
+  Resources:
+    DefaultRole:
+      Type: AWS::IAM::Role
+      Properties:
+        Path: /
+        RoleName: ${self:service}-${self:provider.stage}-DefaultRole
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: ${self:service}-${self:provider.stage}-DefaultPolicy
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource: arn:aws:logs:${self:provider.region}:${self:custom.accountId}:log-group:/aws/lambda/*:*:*
+                - Effect: Allow
+                  Action:
+                    - s3:PutObject
+                  Resource: arn:aws:s3:::${self:custom.deploymentBucket}/*
+                - Effect: Allow
+                  Action:
+                    - tag:GetResources
+                    - tag:GetTagKeys
+                    - tag:GetTagValues
+                    - "lambda:InvokeFunction"
+                    - "lambda:InvokeAsync"
+                  Resource: '*'
+
+    FunctionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        Path: /
+        RoleName: ${self:service}-${self:provider.stage}-FunctionRole
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: ${self:service}-${self:provider.stage}-FunctionPolicy
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource: arn:aws:logs:${self:provider.region}:${self:custom.accountId}:log-group:/aws/lambda/*:*:*
+                # - Effect: Allow
+                #   Action:
+                #     - ec2:CreateNetworkInterface
+                #     - ec2:DescribeNetworkInterfaces
+                #     - ec2:DeleteNetworkInterface
+                #     - ses:*
+                #   Resource: '*'

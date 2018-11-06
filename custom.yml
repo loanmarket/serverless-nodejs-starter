@@ -1,0 +1,19 @@
+default: &default
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules: true
+
+UAT:
+  <<: *default
+  deploymentBucket: uat-mycrm-serverless
+  accountId: 3XXXXXXXXXXX
+
+SIT:
+  <<: *default
+  deploymentBucket: sit-mycrm-serverless
+  accountId: 5XXXXXXXXXXX
+
+PRD:
+  <<: *default
+  deploymentBucket: prod-mycrm-serverless
+  accountId: 5XXXXXXXXXXX
