@@ -6,13 +6,6 @@ references:
     docker:
       - image: circleci/node:8.10
 
-  run_install_serverlesscli: &run_install_serverlesscli
-    run: 
-      name: Install Serverless CLI
-      command: |
-        sudo chown -R $(whoami) /usr/local
-        npm i -g serverless
-
   # command_deploy: &command_deploy |
   #   set -e;
   #   aws_aki_indirect="AWS_ACCESS_KEY_ID_$AWS_KEY_SUFFIX";
@@ -33,7 +26,6 @@ jobs:
           - v1-dependencies-
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
-      - *run_install_serverlesscli
       - run:
           name: Install Dependencies
           command: |
@@ -59,7 +51,6 @@ jobs:
     steps:
       - attach_workspace:
           at: ~/serverless-nodejs-starter
-      - *run_install_serverlesscli
       - run:
           name: Get AWS Credentials
           command: |
