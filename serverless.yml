@@ -45,6 +45,7 @@ functions:
 
 resources:
   Resources:
+
     DefaultRole:
       Type: AWS::IAM::Role
       Properties:
@@ -113,3 +114,16 @@ resources:
                 #     - ec2:DeleteNetworkInterface
                 #     - ses:*
                 #   Resource: '*'
+
+package:
+  exclude:
+    - coverage/**
+    - .circleci/**
+    - .vscode/**
+    - README.md
+    - custom.yml
+    - .eslintrc.yml
+    - test/**
+    - jest-*
+  excludeDevDependencies: true
+  individually: true

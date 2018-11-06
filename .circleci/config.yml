@@ -1,0 +1,87 @@
+version: 2
+
+references:
+  executor: &executor
+    working_directory: ~/serverless-nodejs-starter
+    docker:
+      - image: circleci/node:8.10
+
+  run_install_serverlesscli: &run_install_serverlesscli
+    run: 
+      name: Install Serverless CLI
+      command: |
+        sudo chown -R $(whoami) /usr/local
+        npm i -g serverless
+
+  # command_deploy: &command_deploy |
+  #   set -e;
+  #   aws_aki_indirect="AWS_ACCESS_KEY_ID_$AWS_KEY_SUFFIX";
+  #   aws_sak_indirect="AWS_SECRET_ACCESS_KEY_$AWS_KEY_SUFFIX";
+  #   export AWS_ACCESS_KEY_ID=${!aws_aki_indirect};
+  #   export AWS_SECRET_ACCESS_KEY=$(echo ${!aws_sak_indirect} | base64 --decode);
+  #   sudo npm i -g serverless;
+  #   sls config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY;
+  #   sls deploy -s dev;
+
+jobs:
+  build:
+    <<: *executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+      - *run_install_serverlesscli
+      - run:
+          name: Install Dependencies
+          command: |
+            npm instal
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-
+      # run tests!
+      - run: 
+          name: Run tests with coverage
+          command: npm test
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - serverless-nodejs-starter
+
+  deploy_sit:
+    <<: *executor
+    environment:
+      AWS_KEY_SUFFIX: SIT
+    steps:
+      - attach_workspace:
+          at: ~/serverless-nodejs-starter
+      - *run_install_serverlesscli
+      - run:
+          name: Get AWS Credentials
+          command: |
+            aws_aki_indirect="AWS_ACCESS_KEY_ID_$AWS_KEY_SUFFIX"
+            aws_sak_indirect="AWS_SECRET_ACCESS_KEY_$AWS_KEY_SUFFIX"
+            export AWS_ACCESS_KEY_ID=${!aws_aki_indirect}
+            export AWS_SECRET_ACCESS_KEY=$(echo ${!aws_sak_indirect} | base64 --decode)
+            sudo chmod a+x /usr/local/bin/sls
+            /usr/local/bin/sls config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY
+      - run:
+          name: Serverless Deploy
+          command: |
+            /usr/local/bin/sls deploy -s $AWS_KEY_SUFFIX;
+
+workflows:
+  version: 2
+  build_deploy:
+    jobs:
+      - build
+      - deploy_sit:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
